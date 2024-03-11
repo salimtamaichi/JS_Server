@@ -1,24 +1,22 @@
-
 var currentPage = 1;
 var totalPages;
 
 function fetchData(page) {
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === XMLHttpRequest.DONE) {
-            if (xhr.status === 200) {
-                var response = JSON.parse(xhr.responseText);
-                displayCharacters(response.results);
-                totalPages = Math.ceil(response.count / 10);
-                document.getElementById("pageNumber").innerText = currentPage + " / " + totalPages;
-            } else {
-                console.error('Ha fallado la solicitud. Código de error: ' + xhr.status);
+    fetch('https://swapi.py4e.com/api/people/?page=' + page)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ha fallado la solicitud. Código de error: ' + response.status);
             }
-        }
-    };
-
-    xhr.open('GET', 'https://swapi.py4e.com/api/people/?page=' + page, true);
-    xhr.send();
+            return response.json();
+        })
+        .then(data => {
+            displayCharacters(data.results);
+            totalPages = Math.ceil(data.count / 10);
+            document.getElementById("pageNumber").innerText = currentPage + " / " + totalPages;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
 }
 
 function displayCharacters(characters) {
@@ -29,42 +27,46 @@ function displayCharacters(characters) {
         var characterDiv = document.createElement('div');
         characterDiv.classList.add('character');
         characterDiv.innerHTML = `
-                <h2>${character.name}</h2>
-                <p><strong>Altura:</strong> ${character.height}</p>
-                <p><strong>Cabello:</strong> ${character.hair_color}</p>
-                <p><strong>Piel:</strong> ${character.skin_color}</p>
-                <p><strong>Ojos:</strong> ${character.eye_color}</p>
-                <p><strong>Nacimiento:</strong> ${character.birth_year}</p>
-                <p><strong>Género:</strong> ${character.gender}</p>
-            `;
-
-        // Agregar el campo para seleccionar archivo
-        var fileInput = document.createElement('input');
-        fileInput.type = 'file';
-        fileInput.accept = 'image/*';
-        fileInput.className = 'hidden';
-        characterDiv.appendChild(fileInput);
-
-        // Agregar el botón de subir imagen con estilos de Tailwind CSS
-        var uploadButton = document.createElement('button');
-        uploadButton.textContent = 'Subir Imagen';
-        uploadButton.className = 'mt-2 bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded';
-        uploadButton.onclick = function () {
-            // Disparar un clic en el campo de entrada de archivos cuando se hace clic en el botón
-            fileInput.click();
-        };
-        characterDiv.appendChild(uploadButton);
+            <h2 onclick="fetchCharacter('${character.name}')">${character.name}</h2>
+            <p><strong>Altura:</strong> ${character.height}</p>
+            <p><strong>Cabello:</strong> ${character.hair_color}</p>
+            <p><strong>Piel:</strong> ${character.skin_color}</p>
+            <p><strong>Ojos:</strong> ${character.eye_color}</p>
+            <p><strong>Nacimiento:</strong> ${character.birth_year}</p>
+            <p><strong>Género:</strong> ${character.gender}</p>
+            <input type="file" accept="image/*" id="fileInput_${character.name.replace(/\s+/g, '')}" name="image" class="hidden">
+            <button class="mt-2 bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded"
+                onclick="document.getElementById('fileInput_${character.name.replace(/\s+/g, '')}').click();">
+                Subir Imagen
+            </button>
+        `;
 
         // Evento para manejar la selección de archivo
+        var fileInput = characterDiv.querySelector(`#fileInput_${character.name.replace(/\s+/g, '')}`);
         fileInput.addEventListener('change', function () {
             var selectedFile = fileInput.files[0];
-            uploadImage(selectedFile);
+            uploadImage(selectedFile, character.name);
         });
 
         charactersDiv.appendChild(characterDiv);
     });
 }
 
+function fetchCharacter(characterName) {
+    fetch(`http://localhost:3000/persona/${characterName}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ha fallado la solicitud. Código de error: ' + response.status);
+            }
+            return response.text();
+        })
+        .then(data => {
+            alert(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+}
 
 function previousPage() {
     if (currentPage > 1) {
@@ -98,14 +100,11 @@ let result = ""
 for (let i = 0; i < STAR_COUNT; i++) {
     result += `${randomNumber(-50, 50)}vw ${randomNumber(-50, 50)}vh ${randomNumber(0, 1)}px ${randomNumber(0, 1)}px #fff,`
 }
-function uploadImage() {
+function uploadImage(selectedFile, characterName) {
     var formData = new FormData();
-    var fileInput = document.getElementById('fileInput');
-    console.log(fileInput);
-    var file = fileInput.files[0];
-    formData.append('image', file);
+    formData.append('image', selectedFile);
 
-    fetch('/upload', {
+    fetch("http://localhost:3000/upload", {
         method: 'POST',
         body: formData
     })
@@ -113,15 +112,14 @@ function uploadImage() {
             if (!response.ok) {
                 throw new Error('Error en subir la imagen.');
             }
-            console.log('Imagen subida exitosamente.');
-            return response.text(); // Convertir la respuesta a texto
+            console.log('Imagen subida exitosamente para:', characterName);
+            return response.text();
         })
         .then(message => {
-            alert(message); // Mostrar mensaje de éxito al usuario
+            alert(message);
         })
         .catch(error => {
             console.error('Error:', error);
             alert('Error en subir la imagen.');
         });
 }
-

@@ -1,7 +1,7 @@
 const express = require('express');
-const multer = require('multer');
-const path = require('path');
 const fs = require('fs');
+const path = require('path');
+const multer = require('multer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,26 +14,39 @@ if (!fs.existsSync(uploadDirectory)) {
     fs.mkdirSync(uploadDirectory);
 }
 
-// Configuración de Multer para guardar archivos en la carpeta 'uploads'
+// Configuración de Multer para manejar la carga de archivos
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
+    destination: (req, file, cb) => {
         cb(null, uploadDirectory);
     },
-    filename: function (req, file, cb) {
-        cb(null, file.originalname);
+    filename: (req, file, cb) => {
+        const extension = path.extname(file.originalname);
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + extension);
     }
 });
-
 const upload = multer({ storage: storage });
 
-// Manejo de la solicitud POST para cargar la imagen
-app.post('/upload', upload.single('image'), (req, res) => {
-    res.send('¡La imagen se ha subido correctamente!');
+// Middleware para permitir CORS
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    next();
 });
 
-// Servir los archivos estáticos en la carpeta 'uploads'
-app.use(express.static(uploadDirectory));
+// Ruta para cargar una imagen
+app.post('/upload', upload.single('image'), (req, res) => {
+    if (!req.file) {
+        res.status(400).send('No se ha proporcionado ninguna imagen.');
+        return;
+    }
 
+    console.log('Imagen subida:', req.file.filename);
+    res.send('¡Imagen subida correctamente!');
+});
+
+// Iniciar el servidor
 app.listen(PORT, () => {
     console.log(`Servidor en funcionamiento en el puerto ${PORT}`);
 });
