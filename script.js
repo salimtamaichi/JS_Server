@@ -34,39 +34,74 @@ function displayCharacters(characters) {
             <p><strong>Ojos:</strong> ${character.eye_color}</p>
             <p><strong>Nacimiento:</strong> ${character.birth_year}</p>
             <p><strong>Género:</strong> ${character.gender}</p>
-            <input type="file" accept="image/*" id="fileInput_${character.name.replace(/\s+/g, '')}" name="image" class="hidden">
-            <button class="mt-2 bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded"
-                onclick="document.getElementById('fileInput_${character.name.replace(/\s+/g, '')}').click();">
-                Subir Imagen
-            </button>
         `;
 
+        // Crear el elemento input para subir la imagen
+        var fileInput = document.createElement('input');
+        fileInput.setAttribute('type', 'file');
+        fileInput.setAttribute('accept', 'image/*');
+        fileInput.setAttribute('id', `fileInput_${character.name.replace(/\s+/g, '')}`);
+        fileInput.setAttribute('name', 'image');
+        fileInput.classList.add('hidden');
+
+        // Crear el botón para activar el input de la imagen
+        var uploadButton = document.createElement('button');
+        uploadButton.classList.add('mt-2', 'bg-yellow-500', 'hover:bg-yellow-700', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded');
+        uploadButton.textContent = 'Subir Imagen';
+        uploadButton.onclick = function () {
+            var characterName = character.name;
+            document.getElementById(`fileInput_${characterName.replace(/\s+/g, '')}`).click();
+        };
+
+        // Crear el botón para guardar el personaje
+        var saveButton = document.createElement('button');
+        saveButton.classList.add('mt-2', 'bg-blue-500', 'hover:bg-blue-700', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded');
+        saveButton.textContent = 'Guardar Personaje';
+        saveButton.dataset.characterName = character.name; // Almacenar el nombre del personaje en el atributo data-character-name
+        saveButton.onclick = function () {
+            var characterInfo = character;
+            var imageName = this.dataset.characterName; // Obtener el nombre del personaje desde el atributo data-character-name
+            saveCharacter(characterInfo, imageName);
+        };
+
+        // Agregar el input y los botones al characterDiv
+        characterDiv.appendChild(fileInput);
+        characterDiv.appendChild(uploadButton);
+        characterDiv.appendChild(saveButton);
+
         // Evento para manejar la selección de archivo
-        var fileInput = characterDiv.querySelector(`#fileInput_${character.name.replace(/\s+/g, '')}`);
         fileInput.addEventListener('change', function () {
+            var characterInfo = character;
+
             var selectedFile = fileInput.files[0];
-            uploadImage(selectedFile, character.name);
+            // uploadImage(selectedFile, character.name);
+            saveCharacter(characterInfo, selectedFile);
+
         });
 
         charactersDiv.appendChild(characterDiv);
     });
 }
 
-function fetchCharacter(characterName) {
-    fetch(`http://localhost:3000/persona/${characterName}`)
+function saveCharacter(characterInfo, imageName) {
+    var formData = new FormData();
+    formData.append('characterInfo', JSON.stringify(characterInfo));
+    formData.append('arxiu', imageName); // Agregar el nombre de la imagen al FormData
+
+    fetch("http://localhost:3000/persona", {
+        method: 'POST',
+        body: formData
+    })
         .then(response => {
             if (!response.ok) {
-                throw new Error('Ha fallado la solicitud. Código de error: ' + response.status);
+                throw new Error('Error al guardar el personaje.');
             }
+            console.log('Personaje guardado exitosamente.');
             return response.text();
         })
-        .then(data => {
-            alert(data);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
+        alert('Has guardado el personaje correctamente')
 }
+
 
 function previousPage() {
     if (currentPage > 1) {
@@ -123,3 +158,5 @@ function uploadImage(selectedFile, characterName) {
             alert('Error en subir la imagen.');
         });
 }
+
+
