@@ -32,6 +32,38 @@
             class="mt-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Ver
             todos los personajes
         </button>
+        <div id="starwardleDiv" class=" items-center justify-center">
+            <h1 class="text-4xl font-bold mb-8">STARWADLE</h1>
+
+            <button id="startBtn"
+                class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded mb-4">START
+                GAME!</button>
+            <button id="checkBtn"
+                class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded mb-4">Check selected
+                option</button>
+
+            <div id="inputAndOptions" class="flex justify-between w-full">
+                <div id="characterToGuess" class="w-1/3 p-4 rounded-lg">
+                    <!-- Contenido generado dinámicamente -->
+                </div>
+                <div id="playerZone" class="w-2/5  p-4 rounded-lg">
+                    <h3 id="youWin" class="text-3xl font-bold mb-4 hidden">YOU WIN!</h3>
+                    <img id="winnerImg" src="" class="w-full mb-4 hidden">
+                    <input type="text" id="starwadleInput"
+                        class="w-full bg-gray-800 text-white border border-gray-600 rounded-lg px-4 py-2 mb-4">
+
+                    <div id="optionsCharacters" class="overflow-y-auto max-h-72">
+
+                    </div>
+                </div>
+
+                <div id="comparationCharacters" class="w-1/3 p-4 rounded-lg">
+                    <!-- Contenido generado dinámicamente -->
+                </div>
+            </div>
+        </div>
+
+
     </div>
 
     <script src="script.js"></script>
