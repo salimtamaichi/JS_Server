@@ -59,7 +59,15 @@ function displayCharacters(characters) {
         saveButton.textContent = 'Guardar Personaje';
         saveButton.dataset.characterName = character.name; // Almacenar el nombre del personaje en el atributo data-character-name
         saveButton.onclick = function () {
-            var characterInfo = character;
+            var characterInfo = {
+                name: character.name,
+                height: character.height,
+                hair_color: character.hair_color,
+                skin_color: character.skin_color,
+                eye_color: character.eye_color,
+                birth_year: character.birth_year,
+                gender: character.gender,
+            };
             var imageName = this.dataset.characterName; // Obtener el nombre del personaje desde el atributo data-character-name
             saveCharacter(characterInfo, imageName);
         };
@@ -269,7 +277,6 @@ document.getElementById("checkBtn").addEventListener("click", () => {
             });
         });
 });
-
 
 
 
